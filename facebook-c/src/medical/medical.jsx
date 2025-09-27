@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
+import geminiService from '../services/geminiService';
 
 const MedicalPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [symptoms, setSymptoms] = useState('');
+  const [medicalAdvice, setMedicalAdvice] = useState('');
+  const [isLoadingAdvice, setIsLoadingAdvice] = useState(false);
+  const [showAdviceModal, setShowAdviceModal] = useState(false);
 
   const services = [
     {
@@ -34,6 +39,24 @@ const MedicalPage = () => {
     service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     service.type.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const handleGetMedicalAdvice = async () => {
+    if (!symptoms.trim()) {
+      alert('Please describe your symptoms');
+      return;
+    }
+
+    setIsLoadingAdvice(true);
+    try {
+      const advice = await geminiService.getMedicalAdvice(symptoms, 'current location');
+      setMedicalAdvice(advice);
+      setShowAdviceModal(true);
+    } catch (error) {
+      alert('Failed to get medical advice. Please check your API key configuration.');
+    } finally {
+      setIsLoadingAdvice(false);
+    }
+  };
 
   return (
     <div className="min-h-screen text-white font-sans  ">
@@ -89,6 +112,42 @@ const MedicalPage = () => {
           </button>
         </div>
 
+        {/* AI Medical Advice Section */}
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl shadow-lg p-6 mb-6 animate-pop-in">
+          <div className="flex items-center mb-4">
+            <div className="bg-white rounded-full p-2 mr-3">
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-white">AI Medical Assistant</h3>
+          </div>
+          <p className="text-blue-100 mb-4">Describe your symptoms for immediate first aid guidance and medical advice.</p>
+          <div className="flex space-x-2">
+            <input
+              type="text"
+              placeholder="Describe your symptoms..."
+              value={symptoms}
+              onChange={(e) => setSymptoms(e.target.value)}
+              className="flex-1 bg-white text-gray-800 placeholder-gray-500 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
+            />
+            <button
+              onClick={handleGetMedicalAdvice}
+              disabled={isLoadingAdvice || !symptoms.trim()}
+              className="bg-white text-blue-600 font-bold px-6 py-2 rounded-lg hover:bg-gray-100 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+            >
+              {isLoadingAdvice ? (
+                <div className="flex items-center">
+                  <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-2"></div>
+                  Analyzing...
+                </div>
+              ) : (
+                'Get Advice'
+              )}
+            </button>
+          </div>
+        </div>
+
         {/* Services List */}
         <div className="space-y-4">
           {filteredServices.map((service, index) => (
@@ -124,6 +183,73 @@ const MedicalPage = () => {
           ))}
         </div>
       </main>
+
+      {/* Medical Advice Modal */}
+      {showAdviceModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-900 rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden shadow-2xl">
+            <div className="flex items-center justify-between p-6 border-b border-gray-700">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-white">Medical Advice</h3>
+                  <p className="text-sm text-gray-400">AI-powered guidance</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowAdviceModal(false)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-96">
+              <div className="bg-yellow-100 border-l-4 border-yellow-500 p-4 mb-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm text-yellow-700">
+                      <strong>Disclaimer:</strong> This is for informational purposes only and should not replace professional medical advice. Always consult a healthcare professional for serious symptoms.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="prose prose-invert max-w-none">
+                <pre className="whitespace-pre-wrap text-gray-100 text-sm leading-relaxed">
+                  {medicalAdvice}
+                </pre>
+              </div>
+            </div>
+            <div className="p-6 border-t border-gray-700">
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => navigator.clipboard.writeText(medicalAdvice)}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors"
+                >
+                  Copy Advice
+                </button>
+                <button
+                  onClick={() => setShowAdviceModal(false)}
+                  className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Animations */}
       <style>
         {`

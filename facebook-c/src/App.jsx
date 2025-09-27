@@ -6,6 +6,8 @@ import MedicalPage from './medical/medical';
 // import sellerInfo from './sellerinfo';
 import LoginPage from './login';
 import ThreeAnimation from './animation';
+import AIChat from './components/AIChat';
+import TravelPlanner from './components/TravelPlanner';
  
 
 
@@ -19,6 +21,8 @@ const TravelWebsite = () => {
     // const [isProfileSectionOpen, setIsProfileSectionOpen] = useState(false);
     // const [isSellerInfoOpen, setIsSellerInfoOpen] = useState(false);
     const [isLoginOpen, setIsLoginOpen] = useState(false);
+    const [isAIChatOpen, setIsAIChatOpen] = useState(false);
+    const [isTravelPlannerOpen, setIsTravelPlannerOpen] = useState(false);
     const [activePage, setActivePage] = useState("home"); // 'main', 'explore', 'medical'
 
     const verifiedVendors = [
@@ -223,22 +227,35 @@ const TravelWebsite = () => {
                     
                     </section>
 
-                    <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+                    <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
 
                         <button onClick={() => setIsPriceListModalOpen(true)} className="bg-gradient-to-br from-white via-[#1b9986] to-white transition-colors rounded-xl shadow-lg p-6 text-center transform duration-1000 hover:scale-105 hover:shadow-2xl">
                             <DollarSignIcon className="h-12 w-12 text-green-400 mx-auto mb-4" />
-
                             <h3 className="text-xl font-semibold text-white">Check Fair Prices</h3>
+                            <p className="text-gray-400 mt-2">View transparent rates for local services.</p>
+                        </button>
 
-                            <p className="text-gray-400 mt-2">View transparent rates for local services.</p></button>
+                        <button onClick={() => setIsAIChatOpen(true)} className="bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl shadow-lg p-6 text-center transform transition-all duration-300 hover:scale-105 hover:shadow-2xl">
+                            <svg className="h-12 w-12 text-white mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            <h3 className="text-xl font-semibold text-white">AI Assistant</h3>
+                            <p className="text-gray-200 mt-2">Get personalized travel advice.</p>
+                        </button>
 
-                        <button className="bg-[#EADBC8] rounded-xl shadow-lg p-6 text-center transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"><HelpCircleIcon className="h-12 w-12 text-blue-400 mx-auto mb-4" />
-                            <h3 className="text-xl font-semibold text-white">Need Help?</h3>
-                            <p className="text-gray-400 mt-2">Get quick access to tourist helpline.</p></button>
+                        <button onClick={() => setIsTravelPlannerOpen(true)} className="bg-gradient-to-br from-green-600 to-teal-600 rounded-xl shadow-lg p-6 text-center transform transition-all duration-300 hover:scale-105 hover:shadow-2xl">
+                            <svg className="h-12 w-12 text-white mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.553-.894L9 8m11.953 2.5a1 1 0 01-.893.5H14m-1.5-1.5l1.5-1.5M4 11l5-3m11 8l-5 3m0-11a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <h3 className="text-xl font-semibold text-white">AI Travel Planner</h3>
+                            <p className="text-gray-200 mt-2">Create custom itineraries.</p>
+                        </button>
 
-                        <button className="bg-[#EADBC8] rounded-xl shadow-lg p-6 text-center transform transition-all duration-300 hover:scale-105 hover:shadow-2xl"><StarIcon className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
+                        <button className="bg-[#EADBC8] rounded-xl shadow-lg p-6 text-center transform transition-all duration-300 hover:scale-105 hover:shadow-2xl">
+                            <StarIcon className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
                             <h3 className="text-xl font-semibold text-white">Community Ratings</h3>
-                            <p className="text-gray-400 mt-2">See what other travelers say.</p></button>
+                            <p className="text-gray-400 mt-2">See what other travelers say.</p>
+                        </button>
 
                     </section>
 
@@ -293,6 +310,17 @@ const TravelWebsite = () => {
                     <MedicalPage
                         isOpen={isMedicalOpen}
                         onClose={() => setIsMedicalOpen(false)}
+                    />
+
+                    <AIChat
+                        isOpen={isAIChatOpen}
+                        onClose={() => setIsAIChatOpen(false)}
+                        context={{ currentPage: activePage }}
+                    />
+
+                    <TravelPlanner
+                        isOpen={isTravelPlannerOpen}
+                        onClose={() => setIsTravelPlannerOpen(false)}
                     />
 
                     {/* <sellerInfo

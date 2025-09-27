@@ -1,8 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
+import geminiService from '../services/geminiService';
 
 const ExplorePage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('Restaurants');
+  const [aiSuggestions, setAiSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
 
   const categoryItems = {
     'Restaurants': Array.from({ length: 8 }, (_, index) => ({
@@ -29,6 +33,34 @@ const ExplorePage = () => {
 
   const handleItemClick = (title) => {
     console.log(`${title} tapped!`);
+  };
+
+  // AI-powered search suggestions
+  const handleSearchChange = async (e) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    
+    if (value.length > 2 && geminiService.isConfigured()) {
+      setIsLoadingSuggestions(true);
+      try {
+        const suggestions = await geminiService.getSearchSuggestions(value, activeTab);
+        setAiSuggestions(suggestions);
+        setShowSuggestions(true);
+      } catch (error) {
+        console.error('Error getting AI suggestions:', error);
+        setAiSuggestions([]);
+      } finally {
+        setIsLoadingSuggestions(false);
+      }
+    } else {
+      setAiSuggestions([]);
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    setSearchQuery(suggestion);
+    setShowSuggestions(false);
   };
 
   const filteredItems = categoryItems[activeTab]?.filter(item =>
@@ -98,15 +130,45 @@ const ExplorePage = () => {
           <div className="relative w-full max-w-xl mb-6 animate-fade-in-up">
             <input
               type="text"
-              placeholder="Search..."
+              placeholder="Search with AI suggestions..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearchChange}
+              onFocus={() => setShowSuggestions(searchQuery.length > 2 && aiSuggestions.length > 0)}
               className="w-full pl-12 pr-4 py-4 rounded-full bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg shadow-lg transition-all duration-300 focus:scale-105"
               style={{ fontFamily: "'Poppins', 'Segoe UI', Arial, sans-serif" }}
             />
             <svg xmlns="http://www.w3.org/2000/svg" className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-blue-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
+            
+            {/* AI Suggestions Dropdown */}
+            {showSuggestions && (aiSuggestions.length > 0 || isLoadingSuggestions) && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-gray-800 rounded-lg shadow-xl border border-gray-700 z-50 max-h-60 overflow-y-auto">
+                {isLoadingSuggestions ? (
+                  <div className="p-3 text-center text-gray-400">
+                    <div className="flex items-center justify-center">
+                      <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin mr-2"></div>
+                      Getting AI suggestions...
+                    </div>
+                  </div>
+                ) : (
+                  aiSuggestions.map((suggestion, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleSuggestionClick(suggestion)}
+                      className="w-full text-left px-4 py-3 hover:bg-gray-700 text-white text-sm transition-colors border-b border-gray-700 last:border-b-0"
+                    >
+                      <div className="flex items-center">
+                        <svg className="w-4 h-4 text-blue-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        {suggestion}
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
           </div>
           {/* Tab Bar */}
           <div className="flex justify-center w-full py-2 overflow-x-auto animate-fade-in-up">
